@@ -1,11 +1,11 @@
-name: "Build and Test"
+name: "build-develop-pull"
 on:
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [develop]
 
 concurrency:
-  group: ci-dev-pull-${{ github.ref }}
+  group: ci-develop-pull-${{ github.ref }}
   cancel-in-progress: true
 
 env:

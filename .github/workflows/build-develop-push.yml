@@ -1,0 +1,37 @@
+name: "build-develop-push"
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [develop]
+
+concurrency:
+  group: ci-develop-push-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: repo-cicd #Repo name
+  EKS_CLUSTER: eks-stack
+  IMAGE_NAME: api
+
+jobs:
+  dev-build-test:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v4
+
+      - name: Build & Upload image to ECR
+        uses: appleboy/docker-ecr-action@master
+        with:
+          access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          registry: ${{ secrets.REGISTRY }} # ECR URI
+          repo: ${{env.ECR_REPOSITORY}}
+          region: ${{env.AWS_REGION}}
+          tags: dev-${{github.run_number}}
+          daemon_off: false
+          dockerfile: ./Dockerfile
+          context: ./
