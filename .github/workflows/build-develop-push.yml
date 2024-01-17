@@ -11,12 +11,11 @@ concurrency:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: repo-cicd #Repo name
+  ECR_REPOSITORY: cicd #Repo name
   EKS_CLUSTER: eks-stack
-  IMAGE_NAME: api
 
 jobs:
-  dev-build-test:
+  push-image:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     steps:
