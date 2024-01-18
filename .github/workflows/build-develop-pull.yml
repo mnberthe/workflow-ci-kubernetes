@@ -1,12 +1,20 @@
-name: "deploy spring-boot app on eks"
-on: workflow_dispatch
+name: "build-develop-pull"
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [develop]
+
+concurrency:
+  group: ci-develop-pull-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: repo-cicd
   EKS_CLUSTER: eks-stack
 
 jobs:
-  Build_And_Test:
+  dev-build-test:
     runs-on: ubuntu-latest
     steps:
       - name: Code Checkout
