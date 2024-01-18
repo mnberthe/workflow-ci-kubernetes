@@ -1,0 +1,41 @@
+name: push-docker-image
+on:
+  push:
+    tags:
+      - "v*"
+concurrency:
+  group: ci-push-docker-image-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: cicd
+  EKS_CLUSTER: eks-stack
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ secrets.REGISTRY }}/${{ env.ECR_REPOSITORY }}
+          tags: |
+            type=semver,pattern={{version}}
+
+      - name: Build & Upload image to ECR
+        uses: appleboy/docker-ecr-action@master
+        with:
+          access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          registry: ${{ secrets.REGISTRY }} # ECR URI WITHOUT /REPONAME
+          repo: ${{env.ECR_REPOSITORY}}
+          region: ${{env.AWS_REGION}}
+          tags: steps.meta.outputs.tags
+          daemon_off: false
+          dockerfile: ./Dockerfile
+          context: ./
