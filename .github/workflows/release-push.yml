@@ -1,12 +1,20 @@
-name: "deploy spring-boot app on eks"
-on: workflow_dispatch
+name: "release"
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-main-push-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: repo-cicd
   EKS_CLUSTER: eks-stack
 
 jobs:
-  Build_And_Test:
+  build-test:
     runs-on: ubuntu-latest
     steps:
       - name: Code Checkout
@@ -49,3 +57,21 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_URL }} #OPTIONAL
+
+  release-on-push:
+    needs: build-test
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+    steps:
+      - id: release
+        uses: rymndhng/release-on-push-action@master
+        with:
+          bump_version_scheme: minor
+          tag_prefix: v
+          use_github_release_notes: true
+
+      - name: Check Output Parameters
+        run: |
+          echo "Got tag name ${{ steps.release.outputs.tag_name }}"
+          echo "Got release version ${{ steps.release.outputs.version }}"
