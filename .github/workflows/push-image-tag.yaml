@@ -23,7 +23,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.REGISTRY }}/${{ env.ECR_REPOSITORY }}
+          #images: ${{ secrets.REGISTRY }}/${{ env.ECR_REPOSITORY }}
           tags: |
             type=semver,pattern={{version}}
 
